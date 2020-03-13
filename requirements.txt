@@ -1,2 +1,5 @@
+cvxopt
+networkx
+pandas
 nose
 sphinx
