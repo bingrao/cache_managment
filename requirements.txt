@@ -1,3 +1,6 @@
+scipy
+numpy
+gurobipy
 cvxopt
 networkx
 pandas

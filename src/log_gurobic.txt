@@ -1,0 +1,4 @@
+DEBUG:root:[[0, 1, 2], [0, 5, 6], [0, 1, 2, 3, 4], [0, 1, 2, 5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [0, 5, 6, 10, 11], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]
+INFO:gurobipy.gurobipy:Using license file C:\Users\Bing\gurobi.lic
+INFO:gurobipy.gurobipy:Academic license - for non-commercial use only
+INFO:root:<gurobi.LinExpr: cache_map[0,0] + cache_map[0,1] + cache_map[0,2]>
