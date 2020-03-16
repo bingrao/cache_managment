@@ -1,3 +1,6 @@
+shapely
+scikit-learn
+matplotlib
 scipy
 numpy
 gurobipy

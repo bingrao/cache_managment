@@ -73,8 +73,55 @@ def dense_optimize():
         return False, solution
 
 
+def dense_optimize_v2():
+    solution = [0] * 3
+    # Optimize
+    model = gp.Model()
+
+    xyz = model.addMVar(shape=3, lb=0.0, ub=GRB.INFINITY, vtype=GRB.CONTINUOUS, name="xyz")
+    x = xyz.vararr[0]
+    y = xyz.vararr[1]
+    z = xyz.vararr[2]
+
+    # Build (sparse) constraint matrix
+    data = np.array([1.0, 2.0, 3.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+    row = np.array([0, 0, 0, 1, 1, 2, 3, 4])
+    col = np.array([0, 1, 2, 0, 1, 0, 1, 2])
+    A = sp.csr_matrix((data, (row, col)), shape=(5, 3))
+
+    # Build rhs vector
+    rhs = np.array([4.0, 1.0, 0.0, 0.0, 0.0])
+
+    # Add constraints
+    model.addConstr(A @ xyz >= rhs, name="c")
+
+    # Populate objective
+    obj = gp.QuadExpr()
+    obj += x + y + x * x + y * y + y * z + z * z
+    model.setObjective(obj)
+
+    # Solve
+    model.optimize()
+
+    # Write model to a file
+    # model.write('dense.lp')
+
+    if model.status == GRB.OPTIMAL:
+        x = model.getAttr('x', vars)
+        for i in range(3):
+            solution[i] = x[i]
+        return True, solution
+    else:
+        return False, solution
+
+
 if __name__ == "__main__":
 
     success, sol = dense_optimize()
     if success:
         print('x: %g, y: %g, z: %g' % (sol[0], sol[1], sol[2]))
+
+    # print("*********************************************************")
+    # success, sol = dense_optimize_v2()
+    # if success:
+    #     print('x: %g, y: %g, z: %g' % (sol[0], sol[1], sol[2]))

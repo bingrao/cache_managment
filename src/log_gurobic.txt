@@ -1,4 +1,191 @@
-DEBUG:root:[[0, 1, 2], [0, 5, 6], [0, 1, 2, 3, 4], [0, 1, 2, 5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [0, 5, 6, 10, 11], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]
 INFO:gurobipy.gurobipy:Using license file C:\Users\Bing\gurobi.lic
 INFO:gurobipy.gurobipy:Academic license - for non-commercial use only
-INFO:root:<gurobi.LinExpr: cache_map[0,0] + cache_map[0,1] + cache_map[0,2]>
+DEBUG:root:Stage0-[0, 1, 2], Operation[0], All Paths: [[0, 1, 2]]
+DEBUG:root:Path [0, 1, 2], Sum Key: 0,0,[0, 1, 2]
+DEBUG:root:Stage0-[0, 1, 2], Operation[1], All Paths: [[1, 2]]
+DEBUG:root:Path [1, 2], Sum Key: 0,1,[1, 2]
+DEBUG:root:Stage0-[0, 1, 2], Operation[2], All Paths: [[2]]
+DEBUG:root:Path [2], Sum Key: 0,2,[2]
+DEBUG:root:#######################################################################
+
+DEBUG:root:Stage1-[0, 5, 6], Operation[0], All Paths: [[0, 5, 6]]
+DEBUG:root:Path [0, 5, 6], Sum Key: 1,0,[0, 5, 6]
+DEBUG:root:Stage1-[0, 5, 6], Operation[5], All Paths: [[5, 6]]
+DEBUG:root:Path [5, 6], Sum Key: 1,5,[5, 6]
+DEBUG:root:Stage1-[0, 5, 6], Operation[6], All Paths: [[6]]
+DEBUG:root:Path [6], Sum Key: 1,6,[6]
+DEBUG:root:#######################################################################
+
+DEBUG:root:Stage2-[3, 4], Operation[0], All Paths: [[0, 1, 2, 3, 4]]
+DEBUG:root:Path [0, 1, 2, 3, 4], Sum Key: 2,0,[0, 1, 2, 3, 4]
+DEBUG:root:Stage2-[3, 4], Operation[1], All Paths: [[1, 2, 3, 4]]
+DEBUG:root:Path [1, 2, 3, 4], Sum Key: 2,1,[1, 2, 3, 4]
+DEBUG:root:Stage2-[3, 4], Operation[2], All Paths: [[2, 3, 4]]
+DEBUG:root:Path [2, 3, 4], Sum Key: 2,2,[2, 3, 4]
+DEBUG:root:Stage2-[3, 4], Operation[3], All Paths: [[3, 4]]
+DEBUG:root:Path [3, 4], Sum Key: 2,3,[3, 4]
+DEBUG:root:Stage2-[3, 4], Operation[4], All Paths: [[4]]
+DEBUG:root:Path [4], Sum Key: 2,4,[4]
+DEBUG:root:#######################################################################
+
+DEBUG:root:Stage3-[7, 8], Operation[0], All Paths: [[0, 1, 2, 7, 8], [0, 5, 6, 7, 8]]
+DEBUG:root:Path [0, 1, 2, 7, 8], Sum Key: 3,0,[0, 1, 2, 7, 8]
+DEBUG:root:Path [0, 5, 6, 7, 8], Sum Key: 3,0,[0, 5, 6, 7, 8]
+DEBUG:root:Stage3-[7, 8], Operation[1], All Paths: [[1, 2, 7, 8]]
+DEBUG:root:Path [1, 2, 7, 8], Sum Key: 3,1,[1, 2, 7, 8]
+DEBUG:root:Stage3-[7, 8], Operation[2], All Paths: [[2, 7, 8]]
+DEBUG:root:Path [2, 7, 8], Sum Key: 3,2,[2, 7, 8]
+DEBUG:root:Stage3-[7, 8], Operation[5], All Paths: [[5, 6, 7, 8]]
+DEBUG:root:Path [5, 6, 7, 8], Sum Key: 3,5,[5, 6, 7, 8]
+DEBUG:root:Stage3-[7, 8], Operation[6], All Paths: [[6, 7, 8]]
+DEBUG:root:Path [6, 7, 8], Sum Key: 3,6,[6, 7, 8]
+DEBUG:root:Stage3-[7, 8], Operation[7], All Paths: [[7, 8]]
+DEBUG:root:Path [7, 8], Sum Key: 3,7,[7, 8]
+DEBUG:root:Stage3-[7, 8], Operation[8], All Paths: [[8]]
+DEBUG:root:Path [8], Sum Key: 3,8,[8]
+DEBUG:root:#######################################################################
+
+DEBUG:root:Stage4-[9], Operation[0], All Paths: [[0, 1, 2, 3, 4, 9], [0, 1, 2, 7, 8, 9], [0, 5, 6, 7, 8, 9]]
+DEBUG:root:Path [0, 1, 2, 3, 4, 9], Sum Key: 4,0,[0, 1, 2, 3, 4, 9]
+DEBUG:root:Path [0, 1, 2, 7, 8, 9], Sum Key: 4,0,[0, 1, 2, 7, 8, 9]
+DEBUG:root:Path [0, 5, 6, 7, 8, 9], Sum Key: 4,0,[0, 5, 6, 7, 8, 9]
+DEBUG:root:Stage4-[9], Operation[1], All Paths: [[1, 2, 3, 4, 9], [1, 2, 7, 8, 9]]
+DEBUG:root:Path [1, 2, 3, 4, 9], Sum Key: 4,1,[1, 2, 3, 4, 9]
+DEBUG:root:Path [1, 2, 7, 8, 9], Sum Key: 4,1,[1, 2, 7, 8, 9]
+DEBUG:root:Stage4-[9], Operation[2], All Paths: [[2, 3, 4, 9], [2, 7, 8, 9]]
+DEBUG:root:Path [2, 3, 4, 9], Sum Key: 4,2,[2, 3, 4, 9]
+DEBUG:root:Path [2, 7, 8, 9], Sum Key: 4,2,[2, 7, 8, 9]
+DEBUG:root:Stage4-[9], Operation[3], All Paths: [[3, 4, 9]]
+DEBUG:root:Path [3, 4, 9], Sum Key: 4,3,[3, 4, 9]
+DEBUG:root:Stage4-[9], Operation[4], All Paths: [[4, 9]]
+DEBUG:root:Path [4, 9], Sum Key: 4,4,[4, 9]
+DEBUG:root:Stage4-[9], Operation[5], All Paths: [[5, 6, 7, 8, 9]]
+DEBUG:root:Path [5, 6, 7, 8, 9], Sum Key: 4,5,[5, 6, 7, 8, 9]
+DEBUG:root:Stage4-[9], Operation[6], All Paths: [[6, 7, 8, 9]]
+DEBUG:root:Path [6, 7, 8, 9], Sum Key: 4,6,[6, 7, 8, 9]
+DEBUG:root:Stage4-[9], Operation[7], All Paths: [[7, 8, 9]]
+DEBUG:root:Path [7, 8, 9], Sum Key: 4,7,[7, 8, 9]
+DEBUG:root:Stage4-[9], Operation[8], All Paths: [[8, 9]]
+DEBUG:root:Path [8, 9], Sum Key: 4,8,[8, 9]
+DEBUG:root:Stage4-[9], Operation[9], All Paths: [[9]]
+DEBUG:root:Path [9], Sum Key: 4,9,[9]
+DEBUG:root:#######################################################################
+
+DEBUG:root:Stage5-[10, 11], Operation[0], All Paths: [[0, 5, 6, 10, 11]]
+DEBUG:root:Path [0, 5, 6, 10, 11], Sum Key: 5,0,[0, 5, 6, 10, 11]
+DEBUG:root:Stage5-[10, 11], Operation[5], All Paths: [[5, 6, 10, 11]]
+DEBUG:root:Path [5, 6, 10, 11], Sum Key: 5,5,[5, 6, 10, 11]
+DEBUG:root:Stage5-[10, 11], Operation[6], All Paths: [[6, 10, 11]]
+DEBUG:root:Path [6, 10, 11], Sum Key: 5,6,[6, 10, 11]
+DEBUG:root:Stage5-[10, 11], Operation[10], All Paths: [[10, 11]]
+DEBUG:root:Path [10, 11], Sum Key: 5,10,[10, 11]
+DEBUG:root:Stage5-[10, 11], Operation[11], All Paths: [[11]]
+DEBUG:root:Path [11], Sum Key: 5,11,[11]
+DEBUG:root:#######################################################################
+
+DEBUG:root:Stage6-[12], Operation[0], All Paths: [[0, 1, 2, 3, 4, 9, 12], [0, 1, 2, 7, 8, 9, 12], [0, 5, 6, 7, 8, 9, 12], [0, 5, 6, 10, 11, 12]]
+DEBUG:root:Path [0, 1, 2, 3, 4, 9, 12], Sum Key: 6,0,[0, 1, 2, 3, 4, 9, 12]
+DEBUG:root:Path [0, 1, 2, 7, 8, 9, 12], Sum Key: 6,0,[0, 1, 2, 7, 8, 9, 12]
+DEBUG:root:Path [0, 5, 6, 7, 8, 9, 12], Sum Key: 6,0,[0, 5, 6, 7, 8, 9, 12]
+DEBUG:root:Path [0, 5, 6, 10, 11, 12], Sum Key: 6,0,[0, 5, 6, 10, 11, 12]
+DEBUG:root:Stage6-[12], Operation[1], All Paths: [[1, 2, 3, 4, 9, 12], [1, 2, 7, 8, 9, 12]]
+DEBUG:root:Path [1, 2, 3, 4, 9, 12], Sum Key: 6,1,[1, 2, 3, 4, 9, 12]
+DEBUG:root:Path [1, 2, 7, 8, 9, 12], Sum Key: 6,1,[1, 2, 7, 8, 9, 12]
+DEBUG:root:Stage6-[12], Operation[2], All Paths: [[2, 3, 4, 9, 12], [2, 7, 8, 9, 12]]
+DEBUG:root:Path [2, 3, 4, 9, 12], Sum Key: 6,2,[2, 3, 4, 9, 12]
+DEBUG:root:Path [2, 7, 8, 9, 12], Sum Key: 6,2,[2, 7, 8, 9, 12]
+DEBUG:root:Stage6-[12], Operation[3], All Paths: [[3, 4, 9, 12]]
+DEBUG:root:Path [3, 4, 9, 12], Sum Key: 6,3,[3, 4, 9, 12]
+DEBUG:root:Stage6-[12], Operation[4], All Paths: [[4, 9, 12]]
+DEBUG:root:Path [4, 9, 12], Sum Key: 6,4,[4, 9, 12]
+DEBUG:root:Stage6-[12], Operation[5], All Paths: [[5, 6, 7, 8, 9, 12], [5, 6, 10, 11, 12]]
+DEBUG:root:Path [5, 6, 7, 8, 9, 12], Sum Key: 6,5,[5, 6, 7, 8, 9, 12]
+DEBUG:root:Path [5, 6, 10, 11, 12], Sum Key: 6,5,[5, 6, 10, 11, 12]
+DEBUG:root:Stage6-[12], Operation[6], All Paths: [[6, 7, 8, 9, 12], [6, 10, 11, 12]]
+DEBUG:root:Path [6, 7, 8, 9, 12], Sum Key: 6,6,[6, 7, 8, 9, 12]
+DEBUG:root:Path [6, 10, 11, 12], Sum Key: 6,6,[6, 10, 11, 12]
+DEBUG:root:Stage6-[12], Operation[7], All Paths: [[7, 8, 9, 12]]
+DEBUG:root:Path [7, 8, 9, 12], Sum Key: 6,7,[7, 8, 9, 12]
+DEBUG:root:Stage6-[12], Operation[8], All Paths: [[8, 9, 12]]
+DEBUG:root:Path [8, 9, 12], Sum Key: 6,8,[8, 9, 12]
+DEBUG:root:Stage6-[12], Operation[9], All Paths: [[9, 12]]
+DEBUG:root:Path [9, 12], Sum Key: 6,9,[9, 12]
+DEBUG:root:Stage6-[12], Operation[10], All Paths: [[10, 11, 12]]
+DEBUG:root:Path [10, 11, 12], Sum Key: 6,10,[10, 11, 12]
+DEBUG:root:Stage6-[12], Operation[11], All Paths: [[11, 12]]
+DEBUG:root:Path [11, 12], Sum Key: 6,11,[11, 12]
+DEBUG:root:Stage6-[12], Operation[12], All Paths: [[12]]
+DEBUG:root:Path [12], Sum Key: 6,12,[12]
+DEBUG:root:#######################################################################
+
+INFO:root:----- Output -----
+INFO:root:  Running time : 0.01699042320251465 seconds
+INFO:root:  Optimal coverage points: 2448
+INFO:root:  The Optimal Solution:
+[[0 0 1 0 0 0 0 0 0 0 0 0 0]
+ [0 0 1 0 0 0 1 0 0 0 0 0 0]
+ [0 0 1 0 1 0 1 0 0 0 0 0 0]
+ [0 0 0 0 1 0 0 0 1 0 0 0 0]
+ [0 0 0 0 0 0 1 0 0 1 0 0 0]
+ [0 0 0 0 0 0 0 0 0 1 0 1 0]
+ [0 0 0 0 0 0 0 0 0 0 0 0 0]]
+
+INFO:root:  The Optimal Sum of Path:
+INFO:root:Name: 0,0,[0, 1, 2], Value 0.0
+INFO:root:Name: 0,1,[1, 2], Value 0.0
+INFO:root:Name: 0,2,[2], Value 0.0
+INFO:root:Name: 1,0,[0, 5, 6], Value 0.0
+INFO:root:Name: 1,5,[5, 6], Value 0.0
+INFO:root:Name: 1,6,[6], Value 0.0
+INFO:root:Name: 2,0,[0, 1, 2, 3, 4], Value 0.0
+INFO:root:Name: 2,1,[1, 2, 3, 4], Value 0.0
+INFO:root:Name: 2,2,[2, 3, 4], Value 0.0
+INFO:root:Name: 2,3,[3, 4], Value 0.0
+INFO:root:Name: 2,4,[4], Value 0.0
+INFO:root:Name: 3,0,[0, 1, 2, 7, 8], Value 0.0
+INFO:root:Name: 3,0,[0, 5, 6, 7, 8], Value 0.0
+INFO:root:Name: 3,1,[1, 2, 7, 8], Value 0.0
+INFO:root:Name: 3,2,[2, 7, 8], Value 0.0
+INFO:root:Name: 3,5,[5, 6, 7, 8], Value 0.0
+INFO:root:Name: 3,6,[6, 7, 8], Value 0.0
+INFO:root:Name: 3,7,[7, 8], Value 0.0
+INFO:root:Name: 3,8,[8], Value 0.0
+INFO:root:Name: 4,0,[0, 1, 2, 3, 4, 9], Value 0.0
+INFO:root:Name: 4,0,[0, 1, 2, 7, 8, 9], Value 0.0
+INFO:root:Name: 4,0,[0, 5, 6, 7, 8, 9], Value 0.0
+INFO:root:Name: 4,1,[1, 2, 3, 4, 9], Value 0.0
+INFO:root:Name: 4,1,[1, 2, 7, 8, 9], Value 0.0
+INFO:root:Name: 4,2,[2, 3, 4, 9], Value 0.0
+INFO:root:Name: 4,2,[2, 7, 8, 9], Value 0.0
+INFO:root:Name: 4,3,[3, 4, 9], Value 0.0
+INFO:root:Name: 4,4,[4, 9], Value 0.0
+INFO:root:Name: 4,5,[5, 6, 7, 8, 9], Value 0.0
+INFO:root:Name: 4,6,[6, 7, 8, 9], Value 0.0
+INFO:root:Name: 4,7,[7, 8, 9], Value 0.0
+INFO:root:Name: 4,8,[8, 9], Value 0.0
+INFO:root:Name: 4,9,[9], Value 0.0
+INFO:root:Name: 5,0,[0, 5, 6, 10, 11], Value 0.0
+INFO:root:Name: 5,5,[5, 6, 10, 11], Value 0.0
+INFO:root:Name: 5,6,[6, 10, 11], Value 0.0
+INFO:root:Name: 5,10,[10, 11], Value 0.0
+INFO:root:Name: 5,11,[11], Value 0.0
+INFO:root:Name: 6,0,[0, 1, 2, 3, 4, 9, 12], Value 1.0
+INFO:root:Name: 6,0,[0, 1, 2, 7, 8, 9, 12], Value 1.0
+INFO:root:Name: 6,0,[0, 5, 6, 7, 8, 9, 12], Value 1.0
+INFO:root:Name: 6,0,[0, 5, 6, 10, 11, 12], Value 1.0
+INFO:root:Name: 6,1,[1, 2, 3, 4, 9, 12], Value 1.0
+INFO:root:Name: 6,1,[1, 2, 7, 8, 9, 12], Value 1.0
+INFO:root:Name: 6,2,[2, 3, 4, 9, 12], Value 1.0
+INFO:root:Name: 6,2,[2, 7, 8, 9, 12], Value 1.0
+INFO:root:Name: 6,3,[3, 4, 9, 12], Value 1.0
+INFO:root:Name: 6,4,[4, 9, 12], Value 1.0
+INFO:root:Name: 6,5,[5, 6, 7, 8, 9, 12], Value 1.0
+INFO:root:Name: 6,5,[5, 6, 10, 11, 12], Value 1.0
+INFO:root:Name: 6,6,[6, 7, 8, 9, 12], Value 1.0
+INFO:root:Name: 6,6,[6, 10, 11, 12], Value 1.0
+INFO:root:Name: 6,7,[7, 8, 9, 12], Value 1.0
+INFO:root:Name: 6,8,[8, 9, 12], Value 1.0
+INFO:root:Name: 6,9,[9, 12], Value 1.0
+INFO:root:Name: 6,10,[10, 11, 12], Value 1.0
+INFO:root:Name: 6,11,[11, 12], Value 1.0
+INFO:root:Name: 6,12,[12], Value 1.0
