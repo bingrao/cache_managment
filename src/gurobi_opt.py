@@ -63,11 +63,11 @@ def gurobi_optimization():
                 key = str(stageID) + "," + str(op) + "," + str(path)
                 path_sum_var.append(model.addVar(vtype=GRB.BINARY, name=key))
 
-                # model.addConstr((path_sum_var[idx] == 1) >> (gp.quicksum(cache_map[stageID, p] for p in path) >= 1))
-                # model.addConstr((path_sum_var[idx] == 0) >> (gp.quicksum(cache_map[stageID, p] for p in path) == 0))
-
-                model.addConstr((path_sum_var[idx] == 0) >> (len(path) - gp.quicksum(1 - cache_map[stageID, p] for p in path) >= 1))
-                model.addConstr((path_sum_var[idx] == 1) >> (len(path) - gp.quicksum(1 - cache_map[stageID, p] for p in path) == 0))
+                # min(1, gp.quicksum(cache_map[stageID, p] for p in path))
+                model.addConstr(
+                    (path_sum_var[idx] == 0) >> (gp.quicksum(cache_map[stageID, p] for p in path) >= 1))
+                model.addConstr(
+                    (path_sum_var[idx] == 1) >> (gp.quicksum(cache_map[stageID, p] for p in path) == 0))
 
                 set_map_idx(key, idx)
                 idx = idx + 1

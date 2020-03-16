@@ -119,7 +119,7 @@ DEBUG:root:Path [12], Sum Key: 6,12,[12]
 DEBUG:root:#######################################################################
 
 INFO:root:----- Output -----
-INFO:root:  Running time : 0.01699042320251465 seconds
+INFO:root:  Running time : 0.014991521835327148 seconds
 INFO:root:  Optimal coverage points: 2448
 INFO:root:  The Optimal Solution:
 [[0 0 1 0 0 0 0 0 0 0 0 0 0]
