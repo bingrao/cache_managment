@@ -14,7 +14,7 @@ def gurobi_optimization():
     # **********************************Model input parameters**********************************
 
     # Cache capacity limitation for each node
-    capacity = 1024000
+    capacity = 9000
 
     # Stage info which is indexed from 0 to len(stages)
     stages = [[0, 1, 2], [3, 4], [0, 5, 6], [7, 8], [9], [10, 11], [12]]
@@ -26,7 +26,7 @@ def gurobi_optimization():
     stages_exe_cache_before = [set(), set(), {2}, {2, 6}, {4, 8}, {6}, {9, 11}]
 
     # During execution, the suggested datasets should be in cached after a stage is executed
-    stages_exe_cache_propabiltiy = [{2}, {2, 6}, {2, 4, 6}, {4, 6, 8}, {6, 9}, {9, 11}, set()]
+    stages_exe_cache_propabiltiy = [{2}, {2, 6}, {2, 4, 6}, {4, 6, 8}, {6, 9}, {9, 11}, {12}]
 
     # the input path of edges
     edge_path = '../data/edges.csv'
@@ -69,23 +69,38 @@ def gurobi_optimization():
     path_sum_var = []
     idx = 0
     map_idx = {}
-    for stageID in stages_exe_order:
+    for exeID in range(nums_stages):
+        stageID = stages_exe_order[exeID]
         stage_op = stages_exe_path[stageID]
+        stage = stages[stageID]
         stage_sink = stage_op[-1]
         for op in stage_op:
             all_paths = list(nx.all_simple_paths(graph, op, stage_sink))
             if op == stage_sink:
                 all_paths.append([stage_sink])
+            logging.debug("Execution[%d], Stage[%d]-%s, Operation[%d], All Paths: %s", exeID, stageID, stage, op, all_paths)
             for path in all_paths:
-                key = str(stageID) + "," + str(op) + "," + str(path)
+                key = str(exeID) + "," + str(stageID) + "," + str(op) + "," + str(path)
                 path_sum_var.append(model.addVar(vtype=GRB.BINARY, name=key))
+
                 # min(1, gp.quicksum(cache_map[stageID, p] for p in path))
-                model.addConstr(
-                    (path_sum_var[idx] == 0) >> (gp.quicksum(cache_map[stageID, p] for p in path) >= 1))
-                model.addConstr(
-                    (path_sum_var[idx] == 1) >> (gp.quicksum(cache_map[stageID, p] for p in path) == 0))
+                # sum_cache = len(path) - gp.quicksum(1 - cache_map[stageID, p] for p in path)
+                # model.addConstr((path_sum_var[idx] == 0) >> (sum_cache >= 1))
+                # model.addConstr((path_sum_var[idx] == 1) >> (sum_cache == 0))
+
+                if exeID == 0:
+                    model.addConstr(path_sum_var[idx] == 1)
+                else:
+                    # sum_cache = len(path) - gp.quicksum(1 - cache_map[exeID - 1, p] for p in path)
+                    sum_cache = gp.quicksum(cache_map[exeID-1, p] for p in path)
+                    model.addConstr((path_sum_var[idx] == 0) >> (sum_cache >= 1))
+                    model.addConstr((path_sum_var[idx] == 1) >> (sum_cache == 0))
+                logging.debug("MIN, Previous Execution[%d], Current Execution[%d] Current Stage: %d, Key: %s",
+                              exeID - 1, exeID, stageID, key)
                 map_idx.update({key: idx})
                 idx = idx + 1
+
+        logging.debug("#######################################################################\n")
 
     # After adding variables then update model
     model.update()
@@ -93,11 +108,11 @@ def gurobi_optimization():
     # [[constraits 1]]
     # When conduct an operation, the inputs of the operations
     # should be in cache at the same time
-    for i in range(nums_stages):
-        if i >= 1:
-            if len(stages_exe_cache_before[i]) != 0:
-                for j in stages_exe_cache_before[i]:
-                    model.addConstr(cache_map[i-1, j] == 1)
+    # for i in range(nums_stages):
+    #     if i >= 1:
+    #         if len(stages_exe_cache_before[i]) != 0:
+    #             for j in stages_exe_cache_before[i]:
+    #                 model.addConstr(cache_map[i-1, j] == 1)
 
     # [[constraits 2]]
     # Cache Capacity constraits
@@ -114,9 +129,9 @@ def gurobi_optimization():
     )
 
     # Set up model objective
-    def expect_stage_cost(stageID):
+    def expect_stage_cost(exeID):
+        stageID = stages_exe_order[exeID]
         stage_op = stages_exe_path[stageID]
-        stage = stages[stageID]
         stage_sink = stage_op[-1]
         cost = 0
         for op in stage_op:
@@ -124,24 +139,23 @@ def gurobi_optimization():
             all_paths = list(nx.all_simple_paths(graph, op, stage_sink))
             if op == stage_sink:
                 all_paths.append([stage_sink])
-            logging.debug("Stage%d-%s, Operation[%d], All Paths: %s", stageID, stage, op, all_paths)
             for path in all_paths:
                 prop_path = gp.LinExpr()
-                key = str(stageID) + "," + str(op) + "," + str(path)
+                key = str(exeID) + "," + str(stageID) + "," + str(op) + "," + str(path)
                 sum_var = path_sum_var[map_idx[key]]
                 prop_path += sum_var
-                logging.debug("Path %s, Sum Key: %s", path, key)
                 prop_op = prop_op + prop_path
             cost_op = prop_op * graph.nodes[op]['exe_time']
             cost = cost + cost_op
-        logging.debug("#######################################################################\n")
         return cost
 
     # Set up model objective function (Two Methods)
     # model_objective = gp.LinExpr()
-    # model_objective += np.sum([expect_stage_cost(stage_id) for stage_id in stages_exe_order])
+    # model_objective += np.sum([expect_stage_cost(exe_id) for exe_id in range(nums_stages)])
     # model.setObjective(model_objective, GRB.MINIMIZE)
-    model.setObjective(np.sum([expect_stage_cost(stage_id) for stage_id in stages_exe_order]), GRB.MINIMIZE)
+    model.setObjective(np.sum([expect_stage_cost(exe_id) for exe_id in range(nums_stages)]), GRB.MINIMIZE)
+
+    model.setObjectiveN()
 
     model.setParam('OutputFlag', 0)
     model.optimize()
@@ -171,5 +185,5 @@ def gurobi_optimization():
 if __name__ == "__main__":
     logging.basicConfig(filename='log_gurobic.txt',
                         filemode='w+',
-                        level=logging.INFO)
+                        level=logging.DEBUG)
     gurobi_optimization()
