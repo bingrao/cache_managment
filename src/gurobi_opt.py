@@ -6,7 +6,6 @@ import gurobipy as gp
 from gurobipy import GRB
 import time
 from dog import build_graph_with_attributes
-from math import ceil
 
 
 def gurobi_optimization():
@@ -14,7 +13,7 @@ def gurobi_optimization():
     # **********************************Model input parameters**********************************
 
     # Cache capacity limitation for each node
-    capacity = 9000
+    capacity = 500
 
     # Stage info which is indexed from 0 to len(stages)
     stages = [[0, 1, 2], [3, 4], [0, 5, 6], [7, 8], [9], [10, 11], [12]]
@@ -149,37 +148,36 @@ def gurobi_optimization():
             cost = cost + cost_op
         return cost
 
-    # Set up model objective function (Two Methods)
-    # model_objective = gp.LinExpr()
-    # model_objective += np.sum([expect_stage_cost(exe_id) for exe_id in range(nums_stages)])
-    # model.setObjective(model_objective, GRB.MINIMIZE)
-    model.setObjective(np.sum([expect_stage_cost(exe_id) for exe_id in range(nums_stages)]), GRB.MINIMIZE)
+    # Set up model Primary objective function (Two Methods)
+    model_objective = gp.LinExpr()
+    model_objective += np.sum([expect_stage_cost(exe_id) for exe_id in range(nums_stages)])
+    model.setObjective(model_objective, GRB.MINIMIZE)
+    # model.setObjective(np.sum([expect_stage_cost(exe_id) for exe_id in range(nums_stages)]), GRB.MINIMIZE)
 
-    model.setObjectiveN()
+    # Set up multiple object
+    for i in range(nums_stages):
+        model.setObjectiveN(gp.quicksum(-cache_map[i, j] for j in range(nums_data)), index=i+1)
 
     model.setParam('OutputFlag', 0)
     model.optimize()
     end = time.time()
 
     logging.info('----- Output -----')
+    logging.debug("The number of objectives: %d", model.getAttr("NumObj"))
     logging.info('  Running time : %s seconds' % float(end - start))
-    logging.info('  Optimal coverage points: %g' % model.objVal)
+    logging.info('  Optimal coverage points[Primary OBJ]: %g' % model.objVal)
+
     solution = np.array([cache_map[i, j].X for i in range(nums_stages)
                     for j in range(nums_data)],
                    dtype=int).reshape(nums_stages, nums_data)
 
     logging.info("  The Gurobi Optimal Solution:\n%s\n", solution)
-    for j in range(nums_data):
-        for i in range(nums_stages - 1):
-            if i >= 1:
-                if solution[i-1, j] + solution[i+1, j] == 2 and solution[i,j] == 0:
-                    solution[i,j] = 1
-
-    logging.info("  The Final Optimal Solution:\n%s\n", solution)
-
     logging.debug("  The Optimal Sum of Path:")
     for sum_var in path_sum_var:
         logging.debug("Name: %s, Value %s", sum_var.varName, sum_var.X)
+
+    # model.Params.ObjNumber = 5
+    # logging.info('  Optimal coverage points: %S' % GRB.Param.objN)
 
 
 if __name__ == "__main__":
