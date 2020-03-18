@@ -103,6 +103,7 @@ def gurobi_optimization():
                     model.addConstr(path_sum_var[idx] == 1, name=key+str(1))
                 else:
                     # sum_cache = len(path) - gp.quicksum(1 - cache_map[exeID - 1, p] for p in path)
+                    # https://www.gurobi.com/documentation/9.0/refman/py_tempconstr.html#pythonclass:TempConstr
                     sum_cache = gp.quicksum(cache_map[exeID-1, p] for p in path)
                     model.addConstr((path_sum_var[idx] == 0) >> (sum_cache >= 1), name=key+str(0)) # if >= 1, then 0
                     model.addConstr((path_sum_var[idx] == 1) >> (sum_cache == 0), name=key+str(1)) # if == 0, then 1
@@ -149,6 +150,8 @@ def gurobi_optimization():
         for i in range(nums_stages - 1, gen_stage-1, -1):
             logging.debug("The data[%d], Stage[%d]", j, i)
             if i-1 >= gen_stage:
+                # No matter when cache_map[i, j] == 1, then cache_map[i-1, j] == 1
+                # Must be hold
                 model.addConstr((cache_map[i, j] == 1) >> (cache_map[i-1, j] == 1))
 
     # Set up model objective
