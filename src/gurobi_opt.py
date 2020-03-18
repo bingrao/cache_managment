@@ -17,17 +17,21 @@ from dog import build_graph_with_attributes
 def gurobi_optimization(capacity=6000,
                         stages=None,
                         stages_exe_order_dict=None,
-                        edge_path=None,
-                        node_path=None):
+                        edge_path='../data/edges.csv',
+                        node_path='../data/nodes.csv'):
     if stages is None:
         stages = [[0, 1, 2], [3, 4], [0, 5, 6], [7, 8], [9], [10, 11], [12]]
     if stages_exe_order_dict is None:  # {stageID: exeID}
         stages_exe_order_dict = {0: 0, 1: 2, 2: 1, 3: 3, 4: 4, 5: 5, 6: 6}
-    if edge_path is None:
-        edge_path = '../data/edges.csv'
-    if node_path is None:
-        node_path = '../data/nodes.csv'
 
+    # Feature 1: When invoking an operation, we need to make sure all
+    # needed datasets in memory
+    F_ALL_IN = False
+
+    # Feature 2: Max using an node memory
+    F_MAX_USE = False
+
+    # **********************************Model input parameters**********************************
     nums_stages = len(stages)
 
     def getStageIdFromOperation(op=0):
@@ -38,11 +42,8 @@ def gurobi_optimization(capacity=6000,
                 return stageID
         return 0
 
-    # Execution order of stages, the content is the index of an stage.
-    stages_exe_order = list(stages_exe_order_dict.values())
-
     def getStageIDfromExeID(exeID):
-        return stages_exe_order[exeID]
+        return list(stages_exe_order_dict.values())[exeID]
 
     def getExeIDfromStageID(stageID):
         return stages_exe_order_dict[stageID]
@@ -50,15 +51,6 @@ def gurobi_optimization(capacity=6000,
     def getExeIDOfExeOp(op):
         stageID = getStageIdFromOperation(op)
         return getExeIDfromStageID(stageID)
-
-    # **********************************Model input parameters**********************************
-
-    # Feature 1: When invoking an operation, we need to make sure all
-    # needed datasets in memory
-    F_ALL_IN = False
-
-    # Feature 2: Max using an node memory
-    F_MAX_USE = False
 
     # Identify which execution stage generate which datase
     # for example 5:[2] means dataset 5 is generated in execution stage 2
@@ -89,7 +81,6 @@ def gurobi_optimization(capacity=6000,
     for i in range(nums_stages):
         # list(paths)
         # Out[98]: [[1, 2, 3, 4, 9], [1, 2, 7, 8, 9]]
-        # paths = nx.all_simple_paths(graph, 1, 9)
         paths = list(nx.all_simple_paths(G=graph, source=0, target=stages[i][-1]))
         universe = list(set(itertools.chain(*paths)))
         stages_exe_path.append(universe)
@@ -105,20 +96,21 @@ def gurobi_optimization(capacity=6000,
                 d_succ = list(graph.successors(d))
                 d_ref = np.sum([exe - exeID for exe in list(map(getExeIDOfExeOp, d_succ)) if exe - exeID >= 0])
                 exe_ref_count[exeID, d] = d_ref
-    logging.debug("The Execution Refence Count:\n%s", exe_ref_count)
+
+    logging.info("The Execution Refence Count:\n%s", exe_ref_count)
 
     start = time.time()
     model = gp.Model()
 
     # add optimization variables, this matrix is based on execution order, rather than stages index
-    # that means x = {d0, d1, d2, ..., dn} where y = stages_exe_order
+    # that means x = {d0, d1, d2, ..., dn} where y = list(stages_exe_order_dict.values())
     cache_map = model.addVars(nums_stages, nums_data, vtype=GRB.BINARY, name="cache_map")
 
     path_sum_var = []
     idx = 0
     map_idx = {}
     for exeID in range(nums_stages):
-        stageID = stages_exe_order[exeID]
+        stageID = getStageIDfromExeID(exeID)
         stage_op = stages_exe_path[stageID]
         stage = stages[stageID]
         stage_sink = stage_op[-1]
@@ -159,7 +151,7 @@ def gurobi_optimization(capacity=6000,
         for stage in stages:
             stages_exe_cache_before.append(set(graph.predecessors(stage[0])))
         for exeID in range(nums_stages):
-            stageID = stages_exe_order[exeID]
+            stageID = getStageIDfromExeID(exeID)
             if exeID >= 1:
                 if len(stages_exe_cache_before[stageID]) != 0:
                     for j in stages_exe_cache_before[stageID]:
@@ -193,7 +185,7 @@ def gurobi_optimization(capacity=6000,
 
     # Set up model objective
     def expect_stage_cost(exeID):
-        stageID = stages_exe_order[exeID]
+        stageID = getStageIDfromExeID(exeID)
         stage_op = stages_exe_path[stageID]
         stage_sink = stage_op[-1]
         cost = 0
