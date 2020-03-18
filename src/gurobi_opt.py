@@ -17,19 +17,39 @@ from dog import build_graph_with_attributes
 def gurobi_optimization(capacity=6000,
                         stages=None,
                         stages_exe_order_dict=None,
-                        stages_exe_cache_keep=None,
                         edge_path=None,
                         node_path=None):
     if stages is None:
         stages = [[0, 1, 2], [3, 4], [0, 5, 6], [7, 8], [9], [10, 11], [12]]
-    if stages_exe_order_dict is None: # {stageID: exeID}
+    if stages_exe_order_dict is None:  # {stageID: exeID}
         stages_exe_order_dict = {0: 0, 1: 2, 2: 1, 3: 3, 4: 4, 5: 5, 6: 6}
-    if stages_exe_cache_keep is None:
-        stages_exe_cache_keep = [{2}, {2, 6}, {2, 4, 6}, {4, 6, 8}, {6, 9}, {9, 11}, {12}]
     if edge_path is None:
         edge_path = '../data/edges.csv'
     if node_path is None:
         node_path = '../data/nodes.csv'
+
+    nums_stages = len(stages)
+
+    def getStageIdFromOperation(op=0):
+        if op == 0:
+            return 0
+        for stageID in range(nums_stages):
+            if op in stages[stageID]:
+                return stageID
+        return 0
+
+    # Execution order of stages, the content is the index of an stage.
+    stages_exe_order = list(stages_exe_order_dict.values())
+
+    def getStageIDfromExeID(exeID):
+        return stages_exe_order[exeID]
+
+    def getExeIDfromStageID(stageID):
+        return stages_exe_order_dict[stageID]
+
+    def getExeIDOfExeOp(op):
+        stageID = getStageIdFromOperation(op)
+        return getExeIDfromStageID(stageID)
 
     # **********************************Model input parameters**********************************
 
@@ -39,9 +59,6 @@ def gurobi_optimization(capacity=6000,
 
     # Feature 2: Max using an node memory
     F_MAX_USE = False
-
-    # Execution order of stages, the content is the index of an stage.
-    stages_exe_order = list(stages_exe_order_dict.values())
 
     # Identify which execution stage generate which datase
     # for example 5:[2] means dataset 5 is generated in execution stage 2
@@ -59,7 +76,7 @@ def gurobi_optimization(capacity=6000,
     # for each node, such as input and output datasets.
     graph = build_graph_with_attributes(node_path, edge_path)
     dataset = set(graph.nodes)
-
+    nums_data = len(dataset)
     # exe_path =
     # [[0, 1, 2],
     #  [0, 1, 2, 3, 4],
@@ -69,17 +86,26 @@ def gurobi_optimization(capacity=6000,
     #  [0, 5, 6, 10, 11],
     #  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]
     stages_exe_path = []
-    for i in range(len(stages)):
+    for i in range(nums_stages):
         # list(paths)
         # Out[98]: [[1, 2, 3, 4, 9], [1, 2, 7, 8, 9]]
         # paths = nx.all_simple_paths(graph, 1, 9)
         paths = list(nx.all_simple_paths(G=graph, source=0, target=stages[i][-1]))
         universe = list(set(itertools.chain(*paths)))
         stages_exe_path.append(universe)
-    nums_stages = len(stages)
-    nums_data = len(dataset)
-
     logging.debug(stages_exe_path)
+
+    exe_ref_count = np.zeros(shape=(nums_stages, nums_data), dtype=np.int16)
+    data_processed = set()
+    for exeID in range(nums_stages):
+        stageID = getStageIDfromExeID(exeID)
+        data_processed |= set(stages[stageID])
+        for d in data_processed:
+            if d != 0:
+                d_succ = list(graph.successors(d))
+                d_ref = np.sum([exe - exeID for exe in list(map(getExeIDOfExeOp, d_succ)) if exe - exeID >= 0])
+                exe_ref_count[exeID, d] = d_ref
+    logging.debug("The Execution Refence Count:\n%s", exe_ref_count)
 
     start = time.time()
     model = gp.Model()
@@ -150,7 +176,7 @@ def gurobi_optimization(capacity=6000,
     # [[constraits 3]]
     # Set 0 to these datases which are not needed to be cached
     model.addConstrs(
-        (cache_map[i, j] == 0 for i in range(nums_stages) for j in (dataset - stages_exe_cache_keep[i]))
+        (cache_map[i, j] == 0 for i in range(nums_stages) for j in range(nums_data) if exe_ref_count[i,j] == 0)
     )
 
     # [[constraits 4]]
