@@ -7,13 +7,19 @@ from gurobipy import GRB
 import time
 from dog import build_graph_with_attributes
 
-
 def gurobi_optimization():
 
     # **********************************Model input parameters**********************************
 
+    # Feature 1: When invoking an operation, we need to make sure all
+    # needed datasets in memory
+    F_ALL_IN = False
+
+    # Feature 2: Max using an node memory
+    F_MAX_USE = False
+
     # Cache capacity limitation for each node
-    capacity = 500
+    capacity = 600
 
     # Stage info which is indexed from 0 to len(stages)
     stages = [[0, 1, 2], [3, 4], [0, 5, 6], [7, 8], [9], [10, 11], [12]]
@@ -25,7 +31,17 @@ def gurobi_optimization():
     stages_exe_cache_before = [set(), set(), {2}, {2, 6}, {4, 8}, {6}, {9, 11}]
 
     # During execution, the suggested datasets should be in cached after a stage is executed
-    stages_exe_cache_propabiltiy = [{2}, {2, 6}, {2, 4, 6}, {4, 6, 8}, {6, 9}, {9, 11}, {12}]
+    stages_exe_cache_keep = [{2}, {2, 6}, {2, 4, 6}, {4, 6, 8}, {6, 9}, {9, 11}, {12}]
+
+    # Identify which execution stage generate which dataset
+    # for example 5:1 means dataset 5 is generated in execution stage 1
+    stages_exe_dataset_gen = {0: 0, 1: 0, 2: 0,
+                            5: 1, 6: 1,
+                            3: 2, 4: 2,
+                            7: 3, 8: 3,
+                            9: 4,
+                            10: 5, 11: 5,
+                            12: 6}
 
     # the input path of edges
     edge_path = '../data/edges.csv'
@@ -83,17 +99,13 @@ def gurobi_optimization():
                 path_sum_var.append(model.addVar(vtype=GRB.BINARY, name=key))
 
                 # min(1, gp.quicksum(cache_map[stageID, p] for p in path))
-                # sum_cache = len(path) - gp.quicksum(1 - cache_map[stageID, p] for p in path)
-                # model.addConstr((path_sum_var[idx] == 0) >> (sum_cache >= 1))
-                # model.addConstr((path_sum_var[idx] == 1) >> (sum_cache == 0))
-
                 if exeID == 0:
-                    model.addConstr(path_sum_var[idx] == 1)
+                    model.addConstr(path_sum_var[idx] == 1, name=key+str(1))
                 else:
                     # sum_cache = len(path) - gp.quicksum(1 - cache_map[exeID - 1, p] for p in path)
                     sum_cache = gp.quicksum(cache_map[exeID-1, p] for p in path)
-                    model.addConstr((path_sum_var[idx] == 0) >> (sum_cache >= 1))
-                    model.addConstr((path_sum_var[idx] == 1) >> (sum_cache == 0))
+                    model.addConstr((path_sum_var[idx] == 0) >> (sum_cache >= 1), name=key+str(0)) # if >= 1, then 0
+                    model.addConstr((path_sum_var[idx] == 1) >> (sum_cache == 0), name=key+str(1)) # if == 0, then 1
                 logging.debug("MIN, Previous Execution[%d], Current Execution[%d] Current Stage: %d, Key: %s",
                               exeID - 1, exeID, stageID, key)
                 map_idx.update({key: idx})
@@ -107,11 +119,12 @@ def gurobi_optimization():
     # [[constraits 1]]
     # When conduct an operation, the inputs of the operations
     # should be in cache at the same time
-    # for i in range(nums_stages):
-    #     if i >= 1:
-    #         if len(stages_exe_cache_before[i]) != 0:
-    #             for j in stages_exe_cache_before[i]:
-    #                 model.addConstr(cache_map[i-1, j] == 1)
+    if F_ALL_IN:
+        for i in range(nums_stages):
+            if i >= 1:
+                if len(stages_exe_cache_before[i]) != 0:
+                    for j in stages_exe_cache_before[i]:
+                        model.addConstr(cache_map[i-1, j] == 1)
 
     # [[constraits 2]]
     # Cache Capacity constraits
@@ -124,8 +137,19 @@ def gurobi_optimization():
     # [[constraits 3]]
     # Set 0 to these datases which are not needed to be cached
     model.addConstrs(
-        (cache_map[i, j] == 0 for i in range(nums_stages) for j in (dataset - stages_exe_cache_propabiltiy[i]))
+        (cache_map[i, j] == 0 for i in range(nums_stages) for j in (dataset - stages_exe_cache_keep[i]))
     )
+
+    # [[constraits 4]]
+    # If a dataset is cached after some stages, we need to make sure that
+    # it should put in memory when it is created, after that it should be
+    # in memory until it is evictd from memory
+    for j in range(nums_data):
+        gen_stage = stages_exe_dataset_gen[j]
+        for i in range(nums_stages - 1, gen_stage-1, -1):
+            logging.debug("The data[%d], Stage[%d]", j, i)
+            if i-1 >= gen_stage:
+                model.addConstr((cache_map[i, j] == 1) >> (cache_map[i-1, j] == 1))
 
     # Set up model objective
     def expect_stage_cost(exeID):
@@ -154,34 +178,55 @@ def gurobi_optimization():
     model.setObjective(model_objective, GRB.MINIMIZE)
     # model.setObjective(np.sum([expect_stage_cost(exe_id) for exe_id in range(nums_stages)]), GRB.MINIMIZE)
 
-    # Set up multiple object
-    for i in range(nums_stages):
-        model.setObjectiveN(gp.quicksum(-cache_map[i, j] for j in range(nums_data)), index=i+1)
+    # # Set up multiple object
+    if F_MAX_USE:
+        for i in range(nums_stages):
+            model.setObjectiveN(gp.quicksum(-cache_map[i, j] for j in range(nums_data)), index=i+1)
 
     model.setParam('OutputFlag', 0)
     model.optimize()
     end = time.time()
 
-    logging.info('----- Output -----')
-    logging.debug("The number of objectives: %d", model.getAttr("NumObj"))
-    logging.info('  Running time : %s seconds' % float(end - start))
-    logging.info('  Optimal coverage points[Primary OBJ]: %g' % model.objVal)
+    # Ensure status is optimal
+    assert model.Status == GRB.Status.OPTIMAL
 
-    solution = np.array([cache_map[i, j].X for i in range(nums_stages)
+    logging.info('------------------------- Output -------------------------')
+    logging.info('Running time : %s seconds' % float(end - start))
+    # Query number of multiple objectives, and number of solutions
+    nSolutions = model.SolCount
+    nObjectives = model.NumObj
+    logging.info("Problem has %s objectives", nObjectives)
+    logging.info('Found %d solutions', nSolutions)
+
+    # For each solution, print value of first three variables, and
+    # value for each objective function
+    for s in range(nSolutions):
+
+        # Set which solution we will query from now on
+        model.params.SolutionNumber = s
+        if nObjectives == 1:
+            # Primary objective (indexed by 0) can its return value is model.objVal
+            logging.info('Solution %d, Optimal Obj %d, Value %g', s, 0, model.ObjVal)
+        else:
+            # Print objective value of this solution in each objective
+            for o in range(nObjectives):
+                # Set which objective we will query
+                model.params.ObjNumber = o
+                # Query the o-th objective value
+                logging.info('Solution %d, Optimal Obj %d, Value %g', s, o, model.ObjNVal)
+
+    sol_cache = np.array([cache_map[i, j].X for i in range(nums_stages)
                     for j in range(nums_data)],
                    dtype=int).reshape(nums_stages, nums_data)
 
-    logging.info("  The Gurobi Optimal Solution:\n%s\n", solution)
-    logging.debug("  The Optimal Sum of Path:")
+    logging.info("The Gurobi Optimal Cache Map for each execution Stage Solution:\n%s\n", sol_cache)
+    logging.debug("The Optimal Sum of Path:")
     for sum_var in path_sum_var:
         logging.debug("Name: %s, Value %s", sum_var.varName, sum_var.X)
-
-    # model.Params.ObjNumber = 5
-    # logging.info('  Optimal coverage points: %S' % GRB.Param.objN)
 
 
 if __name__ == "__main__":
     logging.basicConfig(filename='log_gurobic.txt',
                         filemode='w+',
-                        level=logging.DEBUG)
+                        level=logging.INFO)
     gurobi_optimization()
