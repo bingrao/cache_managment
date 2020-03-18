@@ -1,16 +1,16 @@
 INFO:gurobipy.gurobipy:Using license file C:\Users\Bing\gurobi.lic
 INFO:gurobipy.gurobipy:Academic license - for non-commercial use only
 INFO:root:------------------------- Output -------------------------
-INFO:root:Running time : 0.012992382049560547 seconds
+INFO:root:Running time : 0.011992692947387695 seconds
 INFO:root:Problem has 1 objectives
 INFO:root:Found 1 solutions
-INFO:root:Solution 0, Optimal Obj 0, Value 16
+INFO:root:Solution 0, Optimal Obj 0, Value 12
 INFO:root:The Gurobi Optimal Cache Map for each execution Stage Solution:
 [[0 0 1 0 0 0 0 0 0 0 0 0 0]
  [0 0 1 0 0 0 1 0 0 0 0 0 0]
- [0 0 0 0 1 0 1 0 0 0 0 0 0]
- [0 0 0 0 1 0 0 0 1 0 0 0 0]
- [0 0 0 0 0 0 0 0 0 1 0 0 0]
+ [0 0 1 0 1 0 1 0 0 0 0 0 0]
+ [0 0 0 0 1 0 1 0 1 0 0 0 0]
+ [0 0 0 0 0 0 1 0 0 1 0 0 0]
  [0 0 0 0 0 0 0 0 0 1 0 1 0]
  [0 0 0 0 0 0 0 0 0 0 0 0 0]]
 
