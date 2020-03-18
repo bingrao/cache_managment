@@ -17,8 +17,8 @@ from dog import build_graph_with_attributes
 def gurobi_optimization(capacity=6000,
                         stages=None,
                         stages_exe_order_dict=None,
-                        edge_path='../data/edges.csv',
-                        node_path='../data/nodes.csv'):
+                        edge_path='../data/1/edges.csv',
+                        node_path='../data/1/nodes.csv'):
     if stages is None:
         stages = [[0, 1, 2], [3, 4], [0, 5, 6], [7, 8], [9], [10, 11], [12]]
     if stages_exe_order_dict is None:  # {stageID: exeID}
@@ -261,4 +261,16 @@ if __name__ == "__main__":
     logging.basicConfig(filename='log_gurobic.txt',
                         filemode='w+',
                         level=logging.INFO)
-    gurobi_optimization()
+    logging.info("*******************************Test case 1******************************")
+    gurobi_optimization(capacity=6000,
+                        stages=[[0, 1, 2], [3, 4], [0, 5, 6], [7, 8], [9], [10, 11], [12]],
+                        stages_exe_order_dict={0: 0, 1: 2, 2: 1, 3: 3, 4: 4, 5: 5, 6: 6},
+                        edge_path='../data/1/edges.csv',
+                        node_path='../data/1/nodes.csv')
+
+    logging.info("*******************************Test case 2******************************")
+    gurobi_optimization(capacity=600,
+                        stages=[[0, 1, 2,3,4,5], [6, 7], [0, 1, 2, 3, 8, 9], [10,11,12], [13]],
+                        stages_exe_order_dict={0: 0, 1: 2, 2: 1, 3: 3, 4: 4},
+                        edge_path='../data/2/edges.csv',
+                        node_path='../data/2/nodes.csv')
